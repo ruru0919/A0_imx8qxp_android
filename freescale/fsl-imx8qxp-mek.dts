@@ -15,6 +15,9 @@
 /dts-v1/;
 
 #include "fsl-imx8qxp.dtsi"
+#include "fsl-imx8qxp-mek-stella.dtsi"
+/*#include "fsl-imx8qxp-mek-lvds0-it6263.dtsi"
+#include "fsl-imx8qxp-mek-lvds1-it6263.dtsi"*/
 
 / {
 	firmware {
@@ -69,24 +72,15 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		reg_can_en: regulator-can-gen {
-			compatible = "regulator-fixed";
-			regulator-name = "can-en";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&pca6416 3 GPIO_ACTIVE_HIGH>;
-			enable-active-high;
-		};
-
 		reg_can_stby: regulator-can-stby {
 			compatible = "regulator-fixed";
 			regulator-name = "can-stby";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&pca6416 5 GPIO_ACTIVE_HIGH>;
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			gpio = <&gpio0 20 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
-			vin-supply = <&reg_can_en>;
 		};
+        
 
 		reg_usdhc2_vmmc: usdhc2_vmmc {
 			compatible = "regulator-fixed";
@@ -117,50 +111,6 @@
 			enable-active-high;
 		};
 
-		reg_audio: fixedregulator@2 {
-			compatible = "regulator-fixed";
-			reg = <2>;
-			regulator-name = "cs42888_supply";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			regulator-always-on;
-		};
-	};
-
-	sound: sound {
-		compatible = "fsl,imx7d-evk-wm8960",
-			   "fsl,imx-audio-wm8960";
-		model = "wm8960-audio";
-		cpu-dai = <&sai1>;
-		audio-codec = <&wm8960>;
-		asrc-controller = <&asrc0>;
-		codec-master;
-		/*
-		 * hp-det = <hp-det-pin hp-det-polarity>;
-		 * hp-det-pin: JD1 JD2  or JD3
-		 * hp-det-polarity = 0: hp detect high for headphone
-		 * hp-det-polarity = 1: hp detect high for speaker
-		 */
-		hp-det = <2 0>;
-		hp-det-gpios = <&gpio1 0 0>;
-		mic-det-gpios = <&gpio1 0 0>;
-		audio-routing =
-			"Headphone Jack", "HP_L",
-			"Headphone Jack", "HP_R",
-			"Ext Spk", "SPK_LP",
-			"Ext Spk", "SPK_LN",
-			"Ext Spk", "SPK_RP",
-			"Ext Spk", "SPK_RN",
-			"LINPUT2", "Mic Jack",
-			"LINPUT3", "Mic Jack",
-			"RINPUT1", "Main MIC",
-			"RINPUT2", "Main MIC",
-			"Mic Jack", "MICB",
-			"Main MIC", "MICB",
-			"CPU-Playback", "ASRC-Playback",
-			"Playback", "CPU-Playback",
-			"ASRC-Capture", "CPU-Capture",
-			"CPU-Capture", "Capture";
 	};
 
 	sound-amix-sai {
@@ -170,14 +120,6 @@
 		amix-controller = <&amix>;
 	};
 
-	sound-cs42888 {
-		compatible = "fsl,imx8qm-sabreauto-cs42888",
-				"fsl,imx-audio-cs42888";
-		model = "imx-cs42888";
-		esai-controller = <&esai0>;
-		audio-codec = <&cs42888>;
-		status = "okay";
-	};
 };
 
 &acm {
@@ -242,6 +184,9 @@
 		pinctrl_hog: hoggrp {
 			fsl,pins = <
 				SC_P_MCLK_OUT0_ADMA_ACM_MCLK_OUT0	0x0600004c
+				SC_P_MIPI_DSI0_GPIO0_00_LSIO_GPIO1_IO27    0x06000021
+	            SC_P_MIPI_DSI1_GPIO0_00_LSIO_GPIO1_IO31    0x06000021
+        	    SC_P_CSI_PCLK_LSIO_GPIO3_IO00   0x06000021
 			>;
 		};
 
@@ -289,14 +234,12 @@
 				SC_P_UART2_RX_ADMA_UART2_RX	0x06000020
 			>;
 		};
-
 		pinctrl_lpuart3: lpuart3grp {
 			fsl,pins = <
-				SC_P_FLEXCAN2_TX_ADMA_UART3_TX	0x06000020
-				SC_P_FLEXCAN2_RX_ADMA_UART3_RX	0x06000020
+				SC_P_SCU_GPIO0_01_ADMA_UART3_TX	 0x06000020
+				SC_P_SCU_GPIO0_00_ADMA_UART3_RX	 0x06000020
 			>;
 		};
-
 		pinctrl_fec1: fec1grp {
 			fsl,pins = <
 				SC_P_ENET0_MDC_CONN_ENET0_MDC			0x06000020
@@ -344,6 +287,12 @@
 			fsl,pins = <
 				SC_P_FLEXCAN1_TX_ADMA_FLEXCAN1_TX		0x21
 				SC_P_FLEXCAN1_RX_ADMA_FLEXCAN1_RX		0x21
+			>;
+		};
+		pinctrl_flexcan3: flexcan2grp {
+			fsl,pins = <
+				SC_P_FLEXCAN2_RX_ADMA_FLEXCAN2_RX		0x21
+				SC_P_FLEXCAN2_TX_ADMA_FLEXCAN2_TX		0x21
 			>;
 		};
 
@@ -395,26 +344,10 @@
 			>;
 		};
 
-		pinctrl_isl29023: isl29023grp {
-			fsl,pins = <
-				SC_P_SPI2_SDI_LSIO_GPIO1_IO02	0x00000021
-			>;
-		};
-
 		pinctrl_lpi2c1: lpi1cgrp {
 			fsl,pins = <
 				SC_P_USB_SS3_TC1_ADMA_I2C1_SCL	0x06000021
 				SC_P_USB_SS3_TC3_ADMA_I2C1_SDA	0x06000021
-			>;
-		};
-
-		pinctrl_sai1: sai1grp {
-			fsl,pins = <
-				SC_P_SAI1_RXD_ADMA_SAI1_RXD	0x0600004c
-				SC_P_SAI1_RXC_ADMA_SAI1_TXC	0x0600004c
-				SC_P_SAI1_RXFS_ADMA_SAI1_TXFS	0x0600004c
-				SC_P_SPI0_CS1_ADMA_SAI1_TXD	0x0600006c
-				SC_P_SPI2_CS0_LSIO_GPIO1_IO00	0x0600004c
 			>;
 		};
 
@@ -433,14 +366,6 @@
 				SC_P_EMMC0_STROBE_CONN_EMMC0_STROBE	0x06000041
 			>;
 		};
-
-		pinctrl_typec: typecgrp {
-			fsl,pins = <
-				SC_P_ENET0_REFCLK_125M_25M_LSIO_GPIO5_IO09	0x60
-				SC_P_SPI2_SCK_LSIO_GPIO1_IO03			0x06000021
-			>;
-		};
-
 		pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
 			fsl,pins = <
 				SC_P_EMMC0_CLK_CONN_EMMC0_CLK		0x06000040
@@ -613,6 +538,12 @@
 	status = "okay";
 };
 
+&flexcan3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexcan3>;
+	xceiver-supply = <&reg_can_stby>;
+	status = "okay";
+};
 &flexspi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi0>;
@@ -640,45 +571,6 @@
 	pinctrl-0 = <&pinctrl_cm40_i2c>;
 	status = "okay";
 
-	wm8960: wm8960@1a {
-		compatible = "wlf,wm8960";
-		reg = <0x1a>;
-		clocks = <&clk IMX8QXP_AUD_MCLKOUT0>;
-		clock-names = "mclk";
-		wlf,shared-lrclk;
-		power-domains = <&pd_mclk_out0>;
-		assigned-clocks = <&clk IMX8QXP_AUD_PLL0_DIV>,
-				<&clk IMX8QXP_AUD_ACM_AUD_PLL_CLK0_DIV>,
-				<&clk IMX8QXP_AUD_ACM_AUD_REC_CLK0_DIV>,
-				<&clk IMX8QXP_AUD_MCLKOUT0>;
-		assigned-clock-rates = <786432000>, <49152000>, <12288000>, <12288000>;
-	};
-
-	pca6416: gpio@20 {
-		compatible = "ti,tca6416";
-		reg = <0x20>;
-		gpio-controller;
-		#gpio-cells = <2>;
-	};
-
-	cs42888: cs42888@48 {
-		compatible = "cirrus,cs42888";
-		reg = <0x48>;
-		clocks = <&clk IMX8QXP_AUD_MCLKOUT0>;
-		clock-names = "mclk";
-		VA-supply = <&reg_audio>;
-		VD-supply = <&reg_audio>;
-		VLS-supply = <&reg_audio>;
-		VLC-supply = <&reg_audio>;
-		reset-gpio = <&pca9557_b 1 1>;
-		power-domains = <&pd_mclk_out0>;
-		assigned-clocks = <&clk IMX8QXP_AUD_PLL0_DIV>,
-				<&clk IMX8QXP_AUD_ACM_AUD_PLL_CLK0_DIV>,
-				<&clk IMX8QXP_AUD_ACM_AUD_REC_CLK0_DIV>,
-				<&clk IMX8QXP_AUD_MCLKOUT0>;
-		assigned-clock-rates = <786432000>, <49152000>, <12288000>, <12288000>;
-		status = "okay";
-	};
 };
 
 &i2c1 {
@@ -700,6 +592,16 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <0>;
+			ilitek@41 {
+			        compatible = "tchip,ilitek";
+			        reg = <0x41>;
+			        interrupt-parent = <&gpio1>;
+			        interrupts = <28 IRQ_TYPE_LEVEL_HIGH>;
+			        ilitek,irq-gpio = <&gpio1 28 IRQ_TYPE_LEVEL_HIGH>;
+			        ilitek,vbus = "vcc_i2c";
+			        ilitek,vdd = "vdd";
+			        ilitek,name = "ilitek_i2c";
+			};
 		};
 
 		i2c@1 {
@@ -712,24 +614,6 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			reg = <2>;
-
-			fxos8700@1e {
-				compatible = "fsl,fxos8700";
-				reg = <0x1e>;
-				interrupt-open-drain;
-			};
-
-			fxas2100x@21 {
-				compatible = "fsl,fxas2100x";
-				reg = <0x21>;
-				interrupt-open-drain;
-			};
-
-			mpl3115@60 {
-				compatible = "fsl,mpl3115";
-				reg = <0x60>;
-				interrupt-open-drain;
-			};
 		};
 
 		i2c@3 {
@@ -742,6 +626,19 @@
 				reg = <0x1a>;
 				gpio-controller;
 				#gpio-cells = <2>;
+                
+		                rst_tja1101_r_n {
+		                    gpio-hog;
+		                    gpios = <4 GPIO_ACTIVE_HIGH>;
+		                    output-high;
+                		};
+                
+		                mipi_dsi0_en {
+		                    gpio-hog;
+                		    gpios = <6 GPIO_ACTIVE_HIGH>; 
+		                    output-high;
+                		};
+
 			};
 
 			pca9557_b: gpio@1d {
@@ -749,67 +646,64 @@
 				reg = <0x1d>;
 				gpio-controller;
 				#gpio-cells = <2>;
-			};
 
-			isl29023@44 {
-				pinctrl-names = "default";
-				pinctrl-0 = <&pinctrl_isl29023>;
-				compatible = "fsl,isl29023";
-				reg = <0x44>;
-				rext = <499>;
-				interrupt-parent = <&gpio1>;
-				interrupts = <2 2>;
+		                en_tdf8532_r {
+                		    gpio-hog;
+		                    gpios = <1 GPIO_ACTIVE_HIGH>;
+                		    output-high;
+		                };
+                		bb_usb_otg1_pwr_on_r {
+		                    gpio-hog;
+		                    gpios = <2 GPIO_ACTIVE_HIGH>;
+		                    output-high;
+                		};
+		                tdf8532_mute_r_n {
+                		    gpio-hog;
+		                    gpios = <3 GPIO_ACTIVE_HIGH>;
+                		    output-high;
+		                };
+                		rst_tef6638_r_n {
+		                    gpio-hog;
+                		    gpios = <4 GPIO_ACTIVE_HIGH>;
+		                    output-high;
+                		};
+		                tja1101_en_r {
+                		    gpio-hog;
+		                    gpios = <5 GPIO_ACTIVE_HIGH>;
+                		    output-high;
+		                };
+                		rst_gps_r_n {
+		                    gpio-hog;
+		                    gpios = <6 GPIO_ACTIVE_HIGH>;
+		                    output-high;
+                		};
+		                mipi_dsi1_en {
+                		    gpio-hog;
+		                    gpios = <7 GPIO_ACTIVE_HIGH>;
+		                    output-high;
+                		};
 			};
 		};
 	};
-
-	typec_ptn5110: typec@50 {
-		compatible = "usb,tcpci";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_typec>;
-		reg = <0x50>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <3 IRQ_TYPE_LEVEL_LOW>;
-		ss-sel-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&pca9557_a 7 GPIO_ACTIVE_HIGH>;
-		src-pdos = <0x380190c8 0x3803c0c8>;
-		snk-pdos = <0x380190c8>;
-		max-snk-mv = <9000>;
-		max-snk-ma = <1000>;
-		op-snk-mw = <9000>;
-		port-type = "drp";
-		sink-disable;
-		default-role = "source";
-		status = "okay";
-	};
+	tdf8532@6c {
+        	pinctrl-names = "default";
+	        compatible = "tdf8532";
+	        reg = <0x6c>;
+    	};
 };
 
-&sai1 {
-	assigned-clocks = <&clk IMX8QXP_AUD_PLL0_DIV>,
-			<&clk IMX8QXP_AUD_ACM_AUD_PLL_CLK0_DIV>,
-			<&clk IMX8QXP_AUD_ACM_AUD_REC_CLK0_DIV>,
-			<&clk IMX8QXP_AUD_SAI_1_MCLK>;
-	assigned-clock-rates = <786432000>, <49152000>, <12288000>, <49152000>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_sai1>;
-	status = "okay";
-};
 
 &usbotg1 {
-	vbus-supply = <&reg_usb_otg1_vbus>;
-	srp-disable;
-	hnp-disable;
-	adp-disable;
+	srp-enable;
+	hnp-enable;
+	adp-enable;
 	power-polarity-active-high;
 	disable-over-current;
 	status = "okay";
 };
-
-/* Only enable it and ptn5110 after rework U182 */
 &usbotg3 {
-	dr_mode = "otg";
-	extcon = <&typec_ptn5110>;
-	status = "okay";
+        dr_mode = "host";
+        status = "okay";
 };
 
 &usdhc1 {
@@ -993,4 +887,30 @@
 
 &vpu {
 	status = "okay";
+};
+
+
+
+&gpio1 {
+    smipi_dsi0_pwm {
+        gpio-hog;
+        gpios = <27 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "MIPI_DSI0_PWM";
+    };
+    smipi_dsi1_pwm {
+        gpio-hog;
+        gpios = <31 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "MIPI_DSI1_PWM";
+    };
+};
+
+&gpio3 {
+    srst_tp {
+        gpio-hog;
+        gpios = <0 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "RST_TP_1V8_N";
+    };
 };
